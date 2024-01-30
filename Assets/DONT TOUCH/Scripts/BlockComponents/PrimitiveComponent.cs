@@ -10,6 +10,8 @@ public class PrimitiveComponent : SchematicBlock
 
     [Tooltip("Whether the primitive should have a collider attached to it.")]
     public bool Collidable;
+    [Tooltip("Whether the primitive should be static.")]
+    public bool Static;
 
     public override BlockType BlockType => BlockType.Primitive;
 
