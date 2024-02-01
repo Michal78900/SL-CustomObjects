@@ -56,7 +56,7 @@ public class Schematic : SchematicBlock
             int objectId = obj.transform.GetInstanceID();
             
             if (obj.TryGetComponent(out PrimitiveComponent primitiveComponent))
-                ObjectName += primitiveComponent.Static == true ? "-Static" : string.Empty;
+                ObjectName += primitiveComponent.Static ? "-Static" : string.Empty;
 
             SchematicBlockData block = new SchematicBlockData
             {
