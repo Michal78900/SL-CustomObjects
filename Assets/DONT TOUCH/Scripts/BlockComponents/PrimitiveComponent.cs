@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class PrimitiveComponent : SchematicBlock
 {
     [Tooltip("The color of the primitive. Supports transparent colors.")]
@@ -29,25 +30,29 @@ public class PrimitiveComponent : SchematicBlock
         return true;
     }
 
-    private void OnValidate()
+    private void Start()
     {
+        TryGetComponent(out _filter);
+        TryGetComponent(out _renderer);
+        _sharedRegular = new Material((Material)Resources.Load("Materials/Regular"));
+        _sharedTransparent = new Material((Material)Resources.Load("Materials/Transparent"));
+    }
+
+    private void Update()
+    {
+        _filter.hideFlags = HideFlags.HideInInspector;
+        _renderer.hideFlags = HideFlags.HideInInspector;
+        
 #if UNITY_EDITOR
         if (EditorUtility.IsPersistent(gameObject))
             return;
 #endif
-        if (_renderer == null && !TryGetComponent(out _renderer))
-            return;
-
-        if (_sharedRegular == null)
-            _sharedRegular = new Material((Material)Resources.Load("Materials/Regular"));
-
-        if (_sharedTransparent == null)
-            _sharedTransparent = new Material((Material)Resources.Load("Materials/Transparent"));
 
         _renderer.sharedMaterial = Color.a >= 1f ? _sharedRegular : _sharedTransparent;
         _renderer.sharedMaterial.color = Color;
     }
 
+    internal MeshFilter _filter;
     private MeshRenderer _renderer;
     private Material _sharedRegular;
     private Material _sharedTransparent;

@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
-using NaughtyAttributes;
 using UnityEngine;
 
 public class LockerComponent : SchematicBlock
 {
-    [ReorderableList]
-    public List<LockerChamber> Chambers = new List<LockerChamber>();
+    // [ReorderableList]
+    public LockerChamber[] Chambers = new LockerChamber[] { };
     
-    [ReorderableList]
-    public List<string> AllowedRoleTypes = new List<string>
+    // [ReorderableList]
+    public string[] AllowedRoleTypes =
     {
         "Scp0492",
         "Scp049",
@@ -41,8 +40,8 @@ public class LockerComponent : SchematicBlock
     public bool InteractLock = false;
     
     [Tooltip("The chance for this locker to spawn.")]
-    [Label("Chance %")]
-    [MinValue(0f), MaxValue(100f)]
+    // [Label("Chance %")]
+    // [MinValue(0f), MaxValue(100f)]
     public float Chance = 100f;
     
     [HideInInspector]
@@ -56,7 +55,7 @@ public class LockerComponent : SchematicBlock
         block.Scale = transform.localScale;
         block.BlockType = BlockType.Locker;
 
-        Dictionary<int, List<SerializableLockerItem>> chambers = new Dictionary<int, List<SerializableLockerItem>>(Chambers.Count);
+        Dictionary<int, List<SerializableLockerItem>> chambers = new Dictionary<int, List<SerializableLockerItem>>(Chambers.Length);
         int i = 0;
 
         foreach (LockerChamber chamber in Chambers)

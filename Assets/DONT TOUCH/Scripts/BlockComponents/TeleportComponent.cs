@@ -1,23 +1,26 @@
 ﻿using System;
-using NaughtyAttributes;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class TeleportComponent : SchematicBlock
 {
     public override BlockType BlockType => BlockType.Teleport;
 
     public RoomType RoomType = RoomType.Surface;
 
+    /*
     [ReorderableList]
     [ValidateInput("ValidateList", "The target teleport list is invalid. Make sure that your list:\n" +
                                    "- Does not contain any duplicates\n" +
                                    "- One of the teleporters does not point to itself")]
-    public List<TargetTeleporter> TargetTeleporters = new List<TargetTeleporter> { new TargetTeleporter { ChanceToTeleport = 100 } };
+                                   */
+    public TargetTeleporter[] TargetTeleporters = new[] { new TargetTeleporter { ChanceToTeleport = 100 } };
 
-    [BoxGroup("Teleport properties")] [ReorderableList]
-    public List<string> AllowedRoleTypes = new List<string>
+    // [BoxGroup("Teleport properties")] [ReorderableList]
+    public string[] AllowedRoleTypes = 
     {
         "Scp0492",
         "Scp049",
@@ -39,14 +42,18 @@ public class TeleportComponent : SchematicBlock
         "Tutorial",
     };
 
-    [BoxGroup("Teleport properties")] public float Cooldown = 10f;
+    // [BoxGroup("Teleport properties")]
+    public float Cooldown = 10f;
 
-    [BoxGroup("Teleport properties")] public TeleportFlags TeleportFlags = TeleportFlags.Player;
+    // [BoxGroup("Teleport properties")]
+    public TeleportFlags TeleportFlags = TeleportFlags.Player;
 
-    [BoxGroup("Teleport properties")] public LockOnEvent LockOnEvent = LockOnEvent.None;
+    // [BoxGroup("Teleport properties")]
+    public LockOnEvent LockOnEvent = LockOnEvent.None;
 
-    [BoxGroup("Player properties")]
-    [ShowIf("TeleportFlags", TeleportFlags.Player)]
+    // [BoxGroup("Player properties")]
+    // [ShowIf("TeleportFlags", TeleportFlags.Player)]
+    /*
     [Tooltip("Plays the sound to the player on teleport.\n" +
              "Recommended values are:\n" +
              "- 2\n" +
@@ -56,11 +63,12 @@ public class TeleportComponent : SchematicBlock
              "- 27\n" +
              "- 30\n" +
              "- 31")]
+    */
     public bool PlaySoundOnTeleport = false;
 
-    [BoxGroup("Player properties")]
-    [ShowIf("PlaySoundOnTeleport")]
-    [MinValue(0), MaxValue(31)]
+    // [BoxGroup("Player properties")]
+    // [ShowIf("PlaySoundOnTeleport")]
+    [Range(0, 31)]
     [Tooltip("Plays the sound to the player on teleport.\n" +
              "Recommended values are:\n" +
              "- 2\n" +
@@ -72,16 +80,19 @@ public class TeleportComponent : SchematicBlock
              "- 31")]
     public int SoundOnTeleport;
 
-    [BoxGroup("Player properties")] [ShowIf("TeleportFlags", TeleportFlags.Player)]
+    // [BoxGroup("Player properties")]
+    // [ShowIf("TeleportFlags", TeleportFlags.Player)]
     public bool OverridePlayerXRotation = false;
 
-    [BoxGroup("Player properties")] [ShowIf("OverridePlayerXRotation")] [MinValue(-360f), MaxValue(360f)]
+    // [BoxGroup("Player properties")] [ShowIf("OverridePlayerXRotation")]
+    [Range(-360f, 360f)]
     public float PlayerRotationX;
 
-    [BoxGroup("Player properties")] [ShowIf("TeleportFlags", TeleportFlags.Player)]
+    // [BoxGroup("Player properties")] [ShowIf("TeleportFlags", TeleportFlags.Player)]
     public bool OverridePlayerYRotation = false;
 
-    [BoxGroup("Player properties")] [ShowIf("OverridePlayerYRotation")] [MinValue(-360f), MaxValue(360f)]
+    // [BoxGroup("Player properties")] [ShowIf("OverridePlayerYRotation")]
+    [Range(-360f, 360f)]
     public float PlayerRotationY;
 
     public override bool Compile(SchematicBlockData block, Schematic schematic)
@@ -95,8 +106,8 @@ public class TeleportComponent : SchematicBlock
         SerializableTeleport serializableTeleport = new SerializableTeleport(block)
         {
             RoomType = RoomType,
-            TargetTeleporters = new List<TargetTeleporter>(TargetTeleporters.Count),
-            AllowedRoles = AllowedRoleTypes,
+            TargetTeleporters = new List<TargetTeleporter>(TargetTeleporters.Length),
+            AllowedRoles = AllowedRoleTypes.ToList(),
             Cooldown = Cooldown,
             TeleportSoundId = SoundOnTeleport,
             TeleportFlags = TeleportFlags,
@@ -114,7 +125,7 @@ public class TeleportComponent : SchematicBlock
             TeleportFlags.HasFlag(TeleportFlags.Player))
             serializableTeleport.PlayerRotationY = PlayerRotationY;
 
-        for (int i = 0; i < TargetTeleporters.Count; i++)
+        for (int i = 0; i < TargetTeleporters.Length; i++)
         {
             if (TargetTeleporters[i].Teleporter == null)
                 continue;
@@ -123,23 +134,39 @@ public class TeleportComponent : SchematicBlock
             TargetTeleporters[i].Chance = TargetTeleporters[i].ChanceToTeleport;
         }
 
-        serializableTeleport.TargetTeleporters = TargetTeleporters;
+        serializableTeleport.TargetTeleporters = TargetTeleporters.ToList();
 
         schematic.Teleports.Add(serializableTeleport);
 
         return false;
     }
 
-    internal bool ValidateList(List<TargetTeleporter> list)
+
+    private MeshFilter _filter;
+    private MeshRenderer _renderer;
+    
+    private void Awake()
+    {
+        TryGetComponent(out _filter);
+        TryGetComponent(out _renderer);
+    }
+
+    private void Update()
+    {
+        _filter.hideFlags = HideFlags.HideInInspector;
+        _renderer.hideFlags = HideFlags.HideInInspector;
+    }
+
+    private bool ValidateList(TargetTeleporter[] array)
     {
         List<TeleportComponent> checkList = new List<TeleportComponent>();
 
-        for (int i = 0; i < list.Count; i++)
+        for (int i = 0; i < array.Length; i++)
         {
-            if (list[i].Teleporter == null || list[i].Teleporter == this || checkList.Contains(list[i].Teleporter))
+            if (array[i].Teleporter == null || array[i].Teleporter == this || checkList.Contains(array[i].Teleporter))
                 return false;
 
-            checkList.Add(list[i].Teleporter);
+            checkList.Add(array[i].Teleporter);
         }
 
         return true;

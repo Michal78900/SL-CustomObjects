@@ -211,7 +211,7 @@ public static class Decompiler
                 if (gameObject.TryGetComponent(out LockerComponent lockerComponent) && block.Properties != null)
                 {
                     Dictionary<int, List<SerializableLockerItem>> dict = JsonConvert.DeserializeObject<Dictionary<int, List<SerializableLockerItem>>>(JsonConvert.SerializeObject(block.Properties["Chambers"]));
-                    lockerComponent.Chambers.Clear();
+                    lockerComponent.Chambers = new LockerChamber[lockerComponent.Chambers.Length];
                     
                     for (int i = 0; i < dict.Count; i++)
                     {
@@ -221,10 +221,10 @@ public static class Decompiler
                         {
                             PossibleItems = possibleItems
                         };
-                        lockerComponent.Chambers.Add(lockerChamber);
+                        lockerComponent.Chambers[i] = lockerChamber;
                     }
 
-                    lockerComponent.AllowedRoleTypes = JsonConvert.DeserializeObject<List<string>>(JsonConvert.SerializeObject(block.Properties["AllowedRoleTypes"]));
+                    lockerComponent.AllowedRoleTypes = JsonConvert.DeserializeObject<List<string>>(JsonConvert.SerializeObject(block.Properties["AllowedRoleTypes"])).ToArray();
                     lockerComponent.ShuffleChambers = bool.Parse(block.Properties["ShuffleChambers"].ToString());
                     lockerComponent.KeycardPermissions = (KeycardPermissions)Enum.Parse(typeof(KeycardPermissions), block.Properties["KeycardPermissions"].ToString());
                     lockerComponent.OpenedChambers = ushort.Parse(block.Properties["OpenedChambers"].ToString());
@@ -284,9 +284,9 @@ public static class Decompiler
 
             if (gameObject.TryGetComponent(out TeleportComponent teleportComponent))
             {
-                teleportComponent.TargetTeleporters = teleport.TargetTeleporters;
+                teleportComponent.TargetTeleporters = teleport.TargetTeleporters.ToArray();
                 teleportComponent.RoomType = teleport.RoomType;
-                teleportComponent.AllowedRoleTypes = teleport.AllowedRoles;
+                teleportComponent.AllowedRoleTypes = teleport.AllowedRoles.ToArray();
                 teleportComponent.Cooldown = teleport.Cooldown;
                 teleportComponent.TeleportFlags = teleport.TeleportFlags;
                 teleportComponent.LockOnEvent = teleport.LockOnEvent;

@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using NaughtyAttributes;
-using UnityEngine;
 
 [System.Serializable]
 public class SerializableLockerItem
