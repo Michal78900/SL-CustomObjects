@@ -12,19 +12,29 @@ public class PrimitiveComponent : SchematicBlock
     [Tooltip("Whether the primitive should have a collider attached to it.")]
     public bool Collidable;
 
+    [Tooltip("Whether the primitive should be visible in game.")]
+    public bool Visible;
+
     public override BlockType BlockType => BlockType.Primitive;
 
     public override bool Compile(SchematicBlockData block, Schematic _)
     {
         block.Rotation = transform.eulerAngles;
-        Vector3 scaleAbs = new Vector3(Mathf.Abs(transform.localScale.x), Mathf.Abs(transform.localScale.y), Mathf.Abs(transform.localScale.z));
-        block.Scale = Collidable ? scaleAbs : scaleAbs * -1f;
-
+        block.Scale = transform.localScale;
         block.BlockType = BlockType.Primitive;
+        
+        PrimitiveFlags primitiveFlags = PrimitiveFlags.None;
+        if (Collidable)
+            primitiveFlags |= PrimitiveFlags.Collidable;
+
+        if (Visible)
+            primitiveFlags |= PrimitiveFlags.Visible;
+        
         block.Properties = new Dictionary<string, object>
         {
             { "PrimitiveType", (PrimitiveType)Enum.Parse(typeof(PrimitiveType), tag) },
             { "Color", ColorUtility.ToHtmlStringRGBA(Color) },
+            { "PrimitiveFlags", primitiveFlags }
         };
 
         return true;
@@ -50,6 +60,19 @@ public class PrimitiveComponent : SchematicBlock
 
         _renderer.sharedMaterial = Color.a >= 1f ? _sharedRegular : _sharedTransparent;
         _renderer.sharedMaterial.color = Color;
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (Visible)
+        {
+            _renderer.enabled = true;
+            return;
+        }
+
+        _renderer.enabled = false;
+        Gizmos.color = Color;
+        Gizmos.DrawWireMesh(_filter.sharedMesh, 0, transform.position, transform.rotation, transform.localScale);
     }
 
     internal MeshFilter _filter;
