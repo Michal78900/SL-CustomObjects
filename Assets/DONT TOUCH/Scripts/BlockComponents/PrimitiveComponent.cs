@@ -12,6 +12,9 @@ public class PrimitiveComponent : SchematicBlock
     [Tooltip("Whether the primitive should have a collider attached to it.")]
     public bool Collidable;
 
+    [Tooltip("Whether the primitive should be static. Enable it if your schematic contain animation and you want to define this primitive only as a static object.")]
+    public bool Static;
+
     public override BlockType BlockType => BlockType.Primitive;
 
     public override bool Compile(SchematicBlockData block, Schematic _)
@@ -25,6 +28,7 @@ public class PrimitiveComponent : SchematicBlock
         {
             { "PrimitiveType", (PrimitiveType)Enum.Parse(typeof(PrimitiveType), tag) },
             { "Color", ColorUtility.ToHtmlStringRGBA(Color) },
+			{ "IsStatic", Static }
         };
 
         return true;
