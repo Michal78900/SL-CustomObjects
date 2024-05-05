@@ -41,8 +41,8 @@
 
                 if (instance.TryGetComponent(out MeshFilter meshFilter))
                 {
-                    // Ignore teleports
-                    if (instance.TryGetComponent(out TeleportComponent _))
+                    // Ignore already existing SchematicBlocks
+                    if (instance.TryGetComponent(out SchematicBlock _))
                         continue;
                     
                     ReplaceWithPrimitive(instance, meshFilter);
