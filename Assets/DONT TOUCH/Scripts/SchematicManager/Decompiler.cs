@@ -5,7 +5,6 @@ using System.Linq;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
-
 using Object = UnityEngine.Object;
 
 public static class Decompiler
@@ -75,7 +74,7 @@ public static class Decompiler
         GameObject gameObject = null;
         RuntimeAnimatorController animatorController;
         SerializableRigidbody serializableRigidbody;
-
+        
         switch (block.BlockType)
         {
             case BlockType.Empty:
@@ -101,8 +100,6 @@ public static class Decompiler
 
                     if (gameObject.TryGetComponent(out PrimitiveComponent primitiveComponent))
                     {
-                        primitiveComponent.Collidable = block.Scale.x >= 0f;
-                        
                         if (block.Properties != null)
                         {
                             if (ColorUtility.TryParseHtmlString("#" + block.Properties["Color"], out Color color))
@@ -116,6 +113,19 @@ public static class Decompiler
                             else
                             {
                                 Debug.LogWarning($"Couldn't parse {block.Properties["Color"]} as unity color");
+                            }
+
+                            if (block.Properties.TryGetValue("PrimitiveFlags", out object value))
+                            {
+                                PrimitiveFlags primitiveFlags = (PrimitiveFlags)value;
+                                primitiveComponent.Collidable = primitiveFlags.HasFlag(PrimitiveFlags.Collidable);
+                                primitiveComponent.Visible = primitiveFlags.HasFlag(PrimitiveFlags.Visible);
+                            }
+                            else
+                            {
+                                // Backward compatibility
+                                primitiveComponent.Collidable = block.Scale.x >= 0f;
+                                primitiveComponent.Visible = true;
                             }
                         }
 
