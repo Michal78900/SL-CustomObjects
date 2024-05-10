@@ -129,7 +129,7 @@ public class Schematic : SchematicBlock
             Directory.Delete(schematicDirectoryPath, true);
         }
 
-        Debug.Log($"<color=green><b>{name}</b> has been successfully compiled!</color>");
+        Debug.Log($"<color=#00FF00><b>{name}</b> has been successfully compiled!</color>");
     }
 
     public void Update()
@@ -137,7 +137,7 @@ public class Schematic : SchematicBlock
         if (transform.localScale != Vector3.one)
         {
             transform.localScale = Vector3.one;
-            Debug.LogError("<color=red>Do not change the scale of the root object or any other empty transform!</color>");
+            Debug.LogError("<color=red>Do not change the scale of the root object!</color>");
         }
 
         if (name.Contains(" "))

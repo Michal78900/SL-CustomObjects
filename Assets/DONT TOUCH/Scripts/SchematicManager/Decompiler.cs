@@ -41,13 +41,13 @@ public static class Decompiler
         };
 
         System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        Debug.Log("Importing schematic...");
+        Debug.Log("<color=#FFFF00>Importing schematic...</color>");
         
         CreateRecursiveFromID(_schematicData.RootObjectId, _schematicData.Blocks, _rootTransform);
         CreateTeleporters();
         AddRigidbodies();
 
-        Debug.Log($"Successfully imported {_schematicName} schematic in {stopwatch.ElapsedMilliseconds} ms!");
+        Debug.Log($"<color=#00FF00>Successfully imported <b>{_schematicName}</b> schematic in {stopwatch.ElapsedMilliseconds} ms!</color>");
         NullifyFields();
     }
 
