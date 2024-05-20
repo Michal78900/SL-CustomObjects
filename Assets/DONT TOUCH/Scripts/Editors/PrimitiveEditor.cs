@@ -5,18 +5,17 @@
     using UnityEngine;
 
     [CustomEditor(typeof(PrimitiveComponent))]
+    [CanEditMultipleObjects]
     public class PrimitiveEditor : Editor
     {
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
-            GUILayout.Label($"Real in-game rotation: {GetRealRotation().eulerAngles.ToString()}");
+            GUILayout.Label($"Real in-game rotation: {GetRealRotation((PrimitiveComponent)target).eulerAngles.ToString()}");
         }
 
-        private Quaternion GetRealRotation()
+        public static Quaternion GetRealRotation(PrimitiveComponent primitiveComponent)
         {
-            PrimitiveComponent primitiveComponent = (PrimitiveComponent)target;
-            
             const sbyte range = sbyte.MaxValue;
             Quaternion quaternion = Quaternion.Euler(primitiveComponent.transform.localEulerAngles);
             Tuple<sbyte, sbyte, sbyte, sbyte> lpq = new(
