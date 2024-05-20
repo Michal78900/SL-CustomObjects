@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DONT_TOUCH.Scripts.Editors;
 using UnityEditor;
 using UnityEngine;
 
@@ -65,15 +66,23 @@ public class PrimitiveComponent : SchematicBlock
 
     private void OnDrawGizmos()
     {
+        Quaternion realRotation = PrimitiveEditor.GetRealRotation(this);
+        
         if (Visible)
         {
             _renderer.enabled = true;
+            // if (realRotation.eulerAngles != transform.localEulerAngles)
+            // {
+                // Gizmos.color = new Color(1f - Color.r, 1f - Color.g, 1f - Color.b, 1f);
+                // Gizmos.DrawWireMesh(_filter.sharedMesh, 0, transform.position, Quaternion.Euler(realRotation.eulerAngles), transform.localScale);
+            // }
+            
             return;
         }
-
+        
         _renderer.enabled = false;
-        Gizmos.color = Color;
-        Gizmos.DrawWireMesh(_filter.sharedMesh, 0, transform.position, transform.rotation, transform.localScale);
+        Gizmos.color = new Color(Color.r, Color.g, Color.b, 1f);
+        Gizmos.DrawWireMesh(_filter.sharedMesh, 0, transform.position, Quaternion.Euler(realRotation.eulerAngles), transform.localScale);
     }
 
     internal MeshFilter _filter;
