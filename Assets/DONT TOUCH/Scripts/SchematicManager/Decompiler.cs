@@ -117,7 +117,7 @@ public static class Decompiler
 
                             if (block.Properties.TryGetValue("PrimitiveFlags", out object value))
                             {
-                                PrimitiveFlags primitiveFlags = (PrimitiveFlags)value;
+                                PrimitiveFlags primitiveFlags = Enum.Parse<PrimitiveFlags>(value.ToString());
                                 primitiveComponent.Collidable = primitiveFlags.HasFlag(PrimitiveFlags.Collidable);
                                 primitiveComponent.Visible = primitiveFlags.HasFlag(PrimitiveFlags.Visible);
                             }
