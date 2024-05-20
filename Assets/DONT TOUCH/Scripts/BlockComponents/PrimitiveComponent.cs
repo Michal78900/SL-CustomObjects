@@ -21,8 +21,7 @@ public class PrimitiveComponent : SchematicBlock
     public override bool Compile(SchematicBlockData block, Schematic _)
     {
         block.Rotation = transform.eulerAngles;
-        // block.Scale = transform.localScale;
-        block.Scale = transform.localScale * (Collidable ? 1f : -1f);
+        block.Scale = transform.localScale;
         block.BlockType = BlockType.Primitive;
         
         PrimitiveFlags primitiveFlags = PrimitiveFlags.None;
