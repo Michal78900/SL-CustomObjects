@@ -11,7 +11,7 @@
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
-            GUILayout.Label($"Real in-game rotation: {GetRealRotation((PrimitiveComponent)target).eulerAngles.ToString()}");
+            GUILayout.Label($"Real in-game rotation: {GetRealRotation((PrimitiveComponent)target).eulerAngles}");
         }
 
         public static Quaternion GetRealRotation(PrimitiveComponent primitiveComponent)

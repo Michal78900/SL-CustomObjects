@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DONT_TOUCH.Scripts.Editors;
 using UnityEditor;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 [ExecuteInEditMode]
 public class PrimitiveComponent : SchematicBlock
@@ -16,6 +17,9 @@ public class PrimitiveComponent : SchematicBlock
     [Tooltip("Whether the primitive should be visible in game.")]
     public bool Visible;
 
+    [Tooltip("Snaps the object rotation to real in-game rotation.")]
+    public bool SnapRotation;
+
     public override BlockType BlockType => BlockType.Primitive;
 
     public override bool Compile(SchematicBlockData block, Schematic _)
@@ -23,14 +27,14 @@ public class PrimitiveComponent : SchematicBlock
         block.Rotation = transform.eulerAngles;
         block.Scale = transform.localScale;
         block.BlockType = BlockType.Primitive;
-        
+
         PrimitiveFlags primitiveFlags = PrimitiveFlags.None;
         if (Collidable)
             primitiveFlags |= PrimitiveFlags.Collidable;
 
         if (Visible)
             primitiveFlags |= PrimitiveFlags.Visible;
-        
+
         block.Properties = new Dictionary<string, object>
         {
             { "PrimitiveType", (PrimitiveType)Enum.Parse(typeof(PrimitiveType), tag) },
@@ -53,7 +57,7 @@ public class PrimitiveComponent : SchematicBlock
     {
         _filter.hideFlags = HideFlags.HideInInspector;
         _renderer.hideFlags = HideFlags.HideInInspector;
-        
+
 #if UNITY_EDITOR
         if (EditorUtility.IsPersistent(gameObject))
             return;
@@ -61,27 +65,20 @@ public class PrimitiveComponent : SchematicBlock
 
         _renderer.sharedMaterial = Color.a >= 1f ? _sharedRegular : _sharedTransparent;
         _renderer.sharedMaterial.color = Color;
+        
+        _renderer.enabled = Visible;
+        
+        if (SnapRotation)
+            transform.localRotation = PrimitiveEditor.GetRealRotation(this);
     }
 
     private void OnDrawGizmos()
     {
-        Quaternion realRotation = PrimitiveEditor.GetRealRotation(this);
-        
         if (Visible)
-        {
-            _renderer.enabled = true;
-            // if (realRotation.eulerAngles != transform.localEulerAngles)
-            // {
-                // Gizmos.color = new Color(1f - Color.r, 1f - Color.g, 1f - Color.b, 1f);
-                // Gizmos.DrawWireMesh(_filter.sharedMesh, 0, transform.position, Quaternion.Euler(realRotation.eulerAngles), transform.localScale);
-            // }
-            
             return;
-        }
         
-        _renderer.enabled = false;
         Gizmos.color = new Color(Color.r, Color.g, Color.b, 1f);
-        Gizmos.DrawWireMesh(_filter.sharedMesh, 0, transform.position, Quaternion.Euler(realRotation.eulerAngles), transform.localScale);
+        Gizmos.DrawWireMesh(_filter.sharedMesh, 0, transform.position, transform.rotation, transform.localScale);
     }
 
     internal MeshFilter _filter;
