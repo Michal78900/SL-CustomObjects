@@ -49,9 +49,7 @@ public class PickupComponent : SchematicBlock
 
     private void OnValidate()
     {
-        if (CanBePickedUp)
-            NumberOfUses = 1;
-        else
+        if (!CanBePickedUp)
             NumberOfUses = -1;
     }
 }
