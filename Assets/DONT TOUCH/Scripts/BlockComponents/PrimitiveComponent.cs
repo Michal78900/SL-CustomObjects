@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using DONT_TOUCH.Scripts.Editors;
 using UnityEditor;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 [ExecuteInEditMode]
 public class PrimitiveComponent : SchematicBlock
@@ -12,10 +11,10 @@ public class PrimitiveComponent : SchematicBlock
     public Color Color;
 
     [Tooltip("Whether the primitive should have a collider attached to it.")]
-    public bool Collidable;
+    public bool Collidable = true;
 
     [Tooltip("Whether the primitive should be visible in game.")]
-    public bool Visible;
+    public bool Visible = true;
 
     [Tooltip("Snaps the object rotation to real in-game rotation.")]
     public bool SnapRotation;
@@ -39,7 +38,8 @@ public class PrimitiveComponent : SchematicBlock
         {
             { "PrimitiveType", (PrimitiveType)Enum.Parse(typeof(PrimitiveType), tag) },
             { "Color", ColorUtility.ToHtmlStringRGBA(Color) },
-            { "PrimitiveFlags", primitiveFlags }
+            { "PrimitiveFlags", primitiveFlags },
+            { "Static", gameObject.isStatic }
         };
 
         return true;
