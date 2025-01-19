@@ -8,4 +8,5 @@
     Schematic = 5,
     Teleport = 6,
     Locker = 7,
+    AudioSource = 8,
 }

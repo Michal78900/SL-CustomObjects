@@ -80,6 +80,22 @@ public class Schematic : SchematicBlock
                         { "Intensity", lightComponent.intensity },
                         { "Range", lightComponent.range },
                         { "Shadows", lightComponent.shadows != LightShadows.None },
+                        { "Static", lightComponent.gameObject.isStatic }
+                    };
+                }
+                // Audio Source
+                else if (obj.TryGetComponent(out AudioSource source))
+                {
+                    block.BlockType = BlockType.AudioSource;
+                    block.Properties = new Dictionary<string, object>
+                    {
+                        { "PlayOnAwake", source.playOnAwake },
+                        { "AudioPath", source.clip.name },
+                        { "Loop", source.loop },
+                        { "Volume", source.volume },
+                        { "IsSpatial", source.spatialBlend is 1f },
+                        { "MinDistance", source.minDistance },
+                        { "MaxDistance", source.maxDistance },
                     };
                 }
                 else // Empty transform
