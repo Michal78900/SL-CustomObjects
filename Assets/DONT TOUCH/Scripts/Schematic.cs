@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,6 +12,10 @@ using UnityEngine;
 public class Schematic : SchematicBlock
 {
     public override BlockType BlockType => BlockType.Schematic;
+
+    [Tooltip("Allows non-uniform risky scaling on empty objects when enabled.")]
+    [SerializeField]
+    private bool AllowRiskyScaling = false;
 
     public void CompileSchematic()
     {
@@ -139,9 +144,8 @@ public class Schematic : SchematicBlock
 
     private bool ProcessEmptyObjectsScaling()
     {
-        List<Transform> objectsToProcess = new List<Transform>();
-        Dictionary<Transform, Vector3> originalScales = new Dictionary<Transform, Vector3>();
-        bool isValid = true;
+        var proportional = new List<Transform>();
+        var risky = new List<(Transform obj, Vector3 scale)>();
 
         foreach (Transform obj in GetComponentsInChildren<Transform>())
         {
@@ -154,53 +158,77 @@ public class Schematic : SchematicBlock
             if (scale == Vector3.one) continue;
 
             if (IsProportionalScaling(scale))
+                proportional.Add(obj);
+            else
+                risky.Add((obj, scale));
+        }
+
+        if (!AllowRiskyScaling && risky.Count > 0)
+        {
+            foreach (var (obj, scale) in risky)
             {
-                objectsToProcess.Add(obj);
-                originalScales[obj] = scale;
+                string path = GetTransformPath(obj);
+                Debug.LogError(
+                    $"<color=red>Non-uniform scaling detected on empty object <b>'{path}'</b>: {scale}. " +
+                    "Please ensure uniform scaling (x = y = z) or enable AllowRiskyScaling.</color>");
+            }
+            return false;
+        }
+
+        if (AllowRiskyScaling)
+        {
+            if (risky.Count > 0)
+            {
+                foreach (var (obj, scale) in risky)
+                {
+                    string path = GetTransformPath(obj);
+                    Debug.Log(
+                        $"Risky scaling allowed on empty object <b>'{path}'</b>: {scale}. ");
+                }
             }
             else
             {
-                string path = GetTransformPath(obj);
-                Debug.LogError($"<color=red>Non-uniform scaling detected on empty object '{path}': {scale}. Please ensure uniform scaling (x = y = z).</color>");
-                isValid = false;
+                Debug.Log(
+                    "<color=yellow>No risky empty objects detected. " +
+                    "You can disable AllowRiskyScaling for stricter validation.</color>");
             }
         }
 
-        if (objectsToProcess.Count > 0 && isValid)
+        var toProcess = new List<Transform>(proportional);
+        if (AllowRiskyScaling)
+            toProcess.AddRange(risky.ConvertAll(r => r.obj));
+
+        if (toProcess.Count > 0)
         {
 #if UNITY_EDITOR
-            Undo.RecordObjects(objectsToProcess.ConvertAll(t => (UnityEngine.Object)t).ToArray(), "Apply Scaling to Empty Objects");
+            Undo.RecordObjects(
+                toProcess.ConvertAll(t => (UnityEngine.Object)t).ToArray(),
+                "Apply Scaling to Empty Objects");
 #endif
-            foreach (Transform obj in objectsToProcess)
+            foreach (var obj in toProcess)
             {
-                Component[] childComponents = obj.GetComponentsInChildren<Component>();
-                List<Transform> childTransforms = new List<Transform>();
+                var children = obj.GetComponentsInChildren<Transform>()
+                                  .Where(t => t != obj && !IsEmptyObject(t))
+                                  .ToList();
 
-                foreach (Component component in childComponents)
-                {
-                    if (component is Transform childTransform && childTransform != obj && !IsEmptyObject(childTransform))
-                    {
-                        childTransforms.Add(childTransform);
-                    }
-                }
-
-                Dictionary<Transform, Transform> originalParents = new Dictionary<Transform, Transform>();
-                foreach (Transform child in childTransforms)
+                var originalParents = new Dictionary<Transform, Transform>();
+                foreach (var child in children)
                 {
                     originalParents[child] = child.parent;
                     child.SetParent(null);
                 }
-
-                foreach (Transform child in childTransforms)
+                foreach (var child in children)
                 {
                     child.SetParent(originalParents[child]);
                 }
             }
 
-            Debug.Log($"<color=#00FF00>Successfully processed {objectsToProcess.Count} empty objects with uniform scaling.</color>");
+            Debug.Log(
+                $"<color=#00FF00>Processed {toProcess.Count} empty objects " +
+                $"{(AllowRiskyScaling ? "(including risky) " : "")}successfully.</color>");
         }
 
-        return isValid;
+        return true;
     }
 
     private string GetTransformPath(Transform tr)
