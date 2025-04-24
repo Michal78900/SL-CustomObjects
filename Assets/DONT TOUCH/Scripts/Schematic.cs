@@ -14,11 +14,17 @@ public class Schematic : SchematicBlock
 
     public void CompileSchematic()
     {
+        if (!ProcessEmptyObjectsScaling())
+        {
+            Debug.LogError("<color=red>Failed to process empty objects scaling. Please check the console for details.</color>");
+            return;
+        }
+
         string parentDirectoryPath = Directory.Exists(Config.ExportPath)
             ? Config.ExportPath
             : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "MapEditorReborn_CompiledSchematics");
-        
+
         string schematicDirectoryPath = Path.Combine(parentDirectoryPath, name);
 
         if (!Directory.Exists(parentDirectoryPath))
@@ -84,8 +90,7 @@ public class Schematic : SchematicBlock
                 }
                 else // Empty transform
                 {
-                    obj.localScale = Vector3.one;
-
+                    // Keep it
                     block.BlockType = BlockType.Empty;
                     block.Rotation = obj.localEulerAngles;
                 }
@@ -130,6 +135,104 @@ public class Schematic : SchematicBlock
         }
 
         Debug.Log($"<color=#00FF00><b>{name}</b> has been successfully compiled!</color>");
+    }
+
+    private bool ProcessEmptyObjectsScaling()
+    {
+        List<Transform> objectsToProcess = new List<Transform>();
+        Dictionary<Transform, Vector3> originalScales = new Dictionary<Transform, Vector3>();
+        bool isValid = true;
+
+        foreach (Transform obj in GetComponentsInChildren<Transform>())
+        {
+            if (obj == transform) continue;
+
+            if (!IsEmptyObject(obj)) continue;
+
+            Vector3 scale = obj.localScale;
+
+            if (scale == Vector3.one) continue;
+
+            if (IsProportionalScaling(scale))
+            {
+                objectsToProcess.Add(obj);
+                originalScales[obj] = scale;
+            }
+            else
+            {
+                string path = GetTransformPath(obj);
+                Debug.LogError($"<color=red>Non-uniform scaling detected on empty object '{path}': {scale}. Please ensure uniform scaling (x = y = z).</color>");
+                isValid = false;
+            }
+        }
+
+        if (objectsToProcess.Count > 0 && isValid)
+        {
+#if UNITY_EDITOR
+            Undo.RecordObjects(objectsToProcess.ConvertAll(t => (UnityEngine.Object)t).ToArray(), "Apply Scaling to Empty Objects");
+#endif
+            foreach (Transform obj in objectsToProcess)
+            {
+                Component[] childComponents = obj.GetComponentsInChildren<Component>();
+                List<Transform> childTransforms = new List<Transform>();
+
+                foreach (Component component in childComponents)
+                {
+                    if (component is Transform childTransform && childTransform != obj && !IsEmptyObject(childTransform))
+                    {
+                        childTransforms.Add(childTransform);
+                    }
+                }
+
+                Dictionary<Transform, Transform> originalParents = new Dictionary<Transform, Transform>();
+                foreach (Transform child in childTransforms)
+                {
+                    originalParents[child] = child.parent;
+                    child.SetParent(null);
+                }
+
+                foreach (Transform child in childTransforms)
+                {
+                    child.SetParent(originalParents[child]);
+                }
+            }
+
+            Debug.Log($"<color=#00FF00>Successfully processed {objectsToProcess.Count} empty objects with uniform scaling.</color>");
+        }
+
+        return isValid;
+    }
+
+    private string GetTransformPath(Transform tr)
+    {
+        string path = tr.name;
+        Transform parent = tr.parent;
+        while (parent != null && parent != transform)
+        {
+            path = parent.name + "/" + path;
+            parent = parent.parent;
+        }
+        return path;
+    }
+
+    private bool IsEmptyObject(Transform obj)
+    {
+        Component[] components = obj.GetComponents<Component>();
+        if (components.Length > 1)
+        {
+            if (components.Length == 2 && obj.TryGetComponent(out SchematicBlock _))
+                return true;
+
+            return false;
+        }
+        return true;
+    }
+
+    private bool IsProportionalScaling(Vector3 scale)
+    {
+        const float epsilon = 0.00001f;
+        return Mathf.Abs(scale.x - scale.y) < epsilon &&
+               Mathf.Abs(scale.y - scale.z) < epsilon;
     }
 
     public void Update()
