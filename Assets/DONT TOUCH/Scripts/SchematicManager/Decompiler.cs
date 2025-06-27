@@ -159,9 +159,12 @@ public static class Decompiler
                         {
                             lightComponent.intensity = float.Parse(block.Properties["Intensity"].ToString());
                             lightComponent.range = float.Parse(block.Properties["Range"].ToString());
-                            lightComponent.shadows = bool.Parse(block.Properties["Shadows"].ToString())
-                                ? LightShadows.Soft
-                                : LightShadows.None;
+                            if (block.Properties.TryGetValue("Shadows", out var property))
+                            {
+                                lightComponent.shadows = bool.Parse(property.ToString())
+                                    ? LightShadows.Soft
+                                    : LightShadows.None;
+                            }
                         }
 
                         _objectFromId.Add(block.ObjectId, gameObject.transform);
@@ -243,6 +246,26 @@ public static class Decompiler
                 }
                 
                 return gameObject.transform;
+            }
+            case BlockType.Door:
+            {
+                foreach (GameObject blockPrefab in _blockPrefabs)
+                {
+                    if (!blockPrefab.TryGetComponent(out DoorComponent doorComponent)) continue;
+                    if (doorComponent.DoorType != (DoorType)Convert.ToInt32(block.Properties["DoorType"])) continue;
+                    var door = Object.Instantiate(doorComponent, rootObject);
+                    gameObject = door.gameObject;
+                    door.name = block.Name;
+                    door.transform.localPosition = block.Position;
+                    door.transform.localEulerAngles = block.Rotation;
+                    door.transform.localScale = block.Scale;
+                    door.IsOpen = (bool)block.Properties["IsOpen"];
+                    door.IsLocked = (bool)block.Properties["IsLocked"];
+                    door.RequiredPermissions = (DoorPermissionFlags)Convert.ToUInt16(block.Properties["RequiredPermissions"]);
+                    door.RequireAll = (bool)block.Properties["RequireAll"];
+                    return gameObject.transform;
+                }
+                break;
             }
         }
 
