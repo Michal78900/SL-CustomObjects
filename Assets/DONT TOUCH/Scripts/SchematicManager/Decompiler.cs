@@ -42,7 +42,7 @@ public static class Decompiler
 
         System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
         Debug.Log("<color=#FFFF00>Importing schematic...</color>");
-        
+
         CreateRecursiveFromID(_schematicData.RootObjectId, _schematicData.Blocks, _rootTransform);
         CreateTeleporters();
         AddRigidbodies();
@@ -74,7 +74,7 @@ public static class Decompiler
         GameObject gameObject = null;
         RuntimeAnimatorController animatorController;
         SerializableRigidbody serializableRigidbody;
-        
+
         switch (block.BlockType)
         {
             case BlockType.Empty:
@@ -144,8 +144,7 @@ public static class Decompiler
 
                     if (gameObject.TryGetComponent(out Light lightComponent))
                     {
-                        bool canParse =
-                            ColorUtility.TryParseHtmlString("#" + block.Properties["Color"].ToString(), out Color color);
+                        bool canParse = ColorUtility.TryParseHtmlString("#" + block.Properties["Color"].ToString(), out Color color);
                         if (canParse)
                         {
                             lightComponent.color = color;
@@ -159,11 +158,19 @@ public static class Decompiler
                         {
                             lightComponent.intensity = float.Parse(block.Properties["Intensity"].ToString());
                             lightComponent.range = float.Parse(block.Properties["Range"].ToString());
-                            if (block.Properties.TryGetValue("Shadows", out var property))
+
+                            if (block.Properties.TryGetValue("Shadows", out object shadowsValue))
                             {
-                                lightComponent.shadows = bool.Parse(property.ToString())
-                                    ? LightShadows.Soft
-                                    : LightShadows.None;
+                                // Backward compatibility
+                                lightComponent.shadows = (bool)shadowsValue ? LightShadows.Soft : LightShadows.None;
+                            }
+                            else
+                            {
+                                lightComponent.shape = Enum.Parse<LightShape>(block.Properties["Shape"].ToString());
+                                lightComponent.spotAngle = float.Parse(block.Properties["SpotAngle"].ToString());
+                                lightComponent.innerSpotAngle = float.Parse(block.Properties["InnerSpotAngle"].ToString());
+                                lightComponent.shadowStrength = float.Parse(block.Properties["ShadowStrength"].ToString());
+                                lightComponent.shadows = Enum.Parse<LightShadows>(block.Properties["ShadowStrength"].ToString());
                             }
                         }
 
@@ -212,41 +219,41 @@ public static class Decompiler
                 }
 
             case BlockType.Locker:
-            {
-                object lockerType =  Enum.Parse(typeof(LockerType), block.Properties["LockerType"].ToString());
-                GameObject lockerBase = _blockPrefabs.FirstOrDefault(s => s.name.Contains(lockerType.ToString()));
-                gameObject = Object.Instantiate(lockerBase, rootObject);
-                gameObject.name = block.Name;
-                gameObject.transform.localPosition = block.Position;
-                gameObject.transform.localEulerAngles = block.Rotation;
-                gameObject.transform.localScale = block.Scale;
-                
-                if (gameObject.TryGetComponent(out LockerComponent lockerComponent) && block.Properties != null)
                 {
-                    Dictionary<int, List<SerializableLockerItem>> dict = JsonConvert.DeserializeObject<Dictionary<int, List<SerializableLockerItem>>>(JsonConvert.SerializeObject(block.Properties["Chambers"]));
-                    lockerComponent.Chambers = new LockerChamber[lockerComponent.Chambers.Length];
-                    
-                    for (int i = 0; i < dict.Count; i++)
-                    {
-                        List<LockerItem> possibleItems = dict[i].Select(item => new LockerItem(item)).ToList();
+                    object lockerType = Enum.Parse(typeof(LockerType), block.Properties["LockerType"].ToString());
+                    GameObject lockerBase = _blockPrefabs.FirstOrDefault(s => s.name.Contains(lockerType.ToString()));
+                    gameObject = Object.Instantiate(lockerBase, rootObject);
+                    gameObject.name = block.Name;
+                    gameObject.transform.localPosition = block.Position;
+                    gameObject.transform.localEulerAngles = block.Rotation;
+                    gameObject.transform.localScale = block.Scale;
 
-                        LockerChamber lockerChamber = new LockerChamber
+                    if (gameObject.TryGetComponent(out LockerComponent lockerComponent) && block.Properties != null)
+                    {
+                        Dictionary<int, List<SerializableLockerItem>> dict = JsonConvert.DeserializeObject<Dictionary<int, List<SerializableLockerItem>>>(JsonConvert.SerializeObject(block.Properties["Chambers"]));
+                        lockerComponent.Chambers = new LockerChamber[lockerComponent.Chambers.Length];
+
+                        for (int i = 0; i < dict.Count; i++)
                         {
-                            PossibleItems = possibleItems
-                        };
-                        lockerComponent.Chambers[i] = lockerChamber;
+                            List<LockerItem> possibleItems = dict[i].Select(item => new LockerItem(item)).ToList();
+
+                            LockerChamber lockerChamber = new LockerChamber
+                            {
+                                PossibleItems = possibleItems
+                            };
+                            lockerComponent.Chambers[i] = lockerChamber;
+                        }
+
+                        lockerComponent.AllowedRoleTypes = JsonConvert.DeserializeObject<List<string>>(JsonConvert.SerializeObject(block.Properties["AllowedRoleTypes"])).ToArray();
+                        lockerComponent.ShuffleChambers = bool.Parse(block.Properties["ShuffleChambers"].ToString());
+                        lockerComponent.KeycardPermissions = (KeycardPermissions)Enum.Parse(typeof(KeycardPermissions), block.Properties["KeycardPermissions"].ToString());
+                        lockerComponent.OpenedChambers = ushort.Parse(block.Properties["OpenedChambers"].ToString());
+                        lockerComponent.InteractLock = bool.Parse(block.Properties["InteractLock"].ToString());
+                        lockerComponent.Chance = float.Parse(block.Properties["Chance"].ToString());
                     }
 
-                    lockerComponent.AllowedRoleTypes = JsonConvert.DeserializeObject<List<string>>(JsonConvert.SerializeObject(block.Properties["AllowedRoleTypes"])).ToArray();
-                    lockerComponent.ShuffleChambers = bool.Parse(block.Properties["ShuffleChambers"].ToString());
-                    lockerComponent.KeycardPermissions = (KeycardPermissions)Enum.Parse(typeof(KeycardPermissions), block.Properties["KeycardPermissions"].ToString());
-                    lockerComponent.OpenedChambers = ushort.Parse(block.Properties["OpenedChambers"].ToString());
-                    lockerComponent.InteractLock = bool.Parse(block.Properties["InteractLock"].ToString());
-                    lockerComponent.Chance = float.Parse(block.Properties["Chance"].ToString());
+                    return gameObject.transform;
                 }
-                
-                return gameObject.transform;
-            }
             case BlockType.Door:
             {
                 foreach (GameObject blockPrefab in _blockPrefabs)
