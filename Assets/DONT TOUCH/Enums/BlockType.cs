@@ -10,5 +10,6 @@
     Locker = 7,
     Text = 8,
     Interactable = 9,
+    Waypoint = 10,
     Door = 30, // when merging replace with normal serial number
 }

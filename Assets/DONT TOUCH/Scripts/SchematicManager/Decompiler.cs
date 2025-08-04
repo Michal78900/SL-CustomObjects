@@ -26,6 +26,7 @@ public static class Decompiler
             Dict.Add(BlockType.Locker, gameObject.AddComponent<LockerComponent>());
             Dict.Add(BlockType.Text, gameObject.AddComponent<TextComponent>());
             Dict.Add(BlockType.Interactable, gameObject.AddComponent<InteractableComponent>());
+            Dict.Add(BlockType.Waypoint, gameObject.AddComponent<WaypointComponent>());
             Dict.Add(BlockType.Door, gameObject.AddComponent<DoorComponent>());
             return this;
 		}

@@ -76,17 +76,20 @@ public class RightClickMenuExtended
 
 	#region Doors
 	[MenuItem("GameObject/🛠️ MER Blocks/Doors/Ez", false, -1)]
-	private static void CreateEzDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, $"Assets/Resources/Blocks/Doors/Ez.prefab");
+	private static void CreateEzDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, "Assets/Resources/Blocks/Doors/Ez.prefab");
 	[MenuItem("GameObject/🛠️ MER Blocks/Doors/Lcz", false, -1)]
-	private static void CreateLczDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, $"Assets/Resources/Blocks/Doors/Lcz.prefab");
+	private static void CreateLczDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, "Assets/Resources/Blocks/Doors/Lcz.prefab");
 	[MenuItem("GameObject/🛠️ MER Blocks/Doors/Hcz", false, -1)]
-	private static void CreateHczDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, $"Assets/Resources/Blocks/Doors/Hcz.prefab");
+	private static void CreateHczDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, "Assets/Resources/Blocks/Doors/Hcz.prefab");
 	[MenuItem("GameObject/🛠️ MER Blocks/Doors/HeavyBulk", false, -1)]
-	private static void CreateHeavyBulkDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, $"Assets/Resources/Blocks/Doors/HeavyBulk.prefab");
+	private static void CreateHeavyBulkDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, "Assets/Resources/Blocks/Doors/HeavyBulk.prefab");
 	[MenuItem("GameObject/🛠️ MER Blocks/Doors/Gate", false, -1)]
-	private static void CreateGateDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, $"Assets/Resources/Blocks/Doors/Gate.prefab");
+	private static void CreateGateDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, "Assets/Resources/Blocks/Doors/Gate.prefab");
 	#endregion
 	
+	[MenuItem("GameObject/🛠️ MER Blocks/Waypoint", false, -1)]
+	private static void CreateWaypoint(MenuCommand menuCommand) => CreateBlock(menuCommand, "Assets/Resources/Blocks/Waypoint.prefab");
+
 	private static void CreateBlock(MenuCommand menuCommand, string prefabPath)
 	{
 		GameObject instance = SchematicBlock.Create<GameObject>(prefabPath);
