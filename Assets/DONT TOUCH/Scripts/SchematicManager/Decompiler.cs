@@ -27,7 +27,7 @@ public static class Decompiler
             Dict.Add(BlockType.Text, gameObject.AddComponent<TextComponent>());
             Dict.Add(BlockType.Interactable, gameObject.AddComponent<InteractableComponent>());
             Dict.Add(BlockType.Waypoint, gameObject.AddComponent<WaypointComponent>());
-
+            Dict.Add(BlockType.Door, gameObject.AddComponent<DoorComponent>());
             return this;
 		}
 	}
@@ -130,6 +130,7 @@ public static class Decompiler
             return null;
 
         GameObject gameObject = null;
+
 		if (_schematicBuilder.TryGetBlockFromType(block.BlockType, out SchematicBlock schematicBlock))
 		{
 			schematicBlock.Decompile(ref gameObject, block, rootObject);
