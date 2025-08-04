@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -21,7 +20,7 @@ public class LockerItem
         }
         
         Count = serializableLockerItem.Count;
-        Attachments = serializableLockerItem.Attachments;
+        // Attachments = serializableLockerItem.Attachments;
         Chance = serializableLockerItem.Chance;
     }
     
@@ -34,7 +33,7 @@ public class LockerItem
     public uint Count = 1;
 
     // [ReorderableList]
-    public List<AttachmentName> Attachments = new List<AttachmentName>();
+    // public List<AttachmentName> Attachments = new List<AttachmentName>();
 
     public float Chance = 100;
 }

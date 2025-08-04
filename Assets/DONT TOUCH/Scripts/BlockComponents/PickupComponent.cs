@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PickupComponent : SchematicBlock
@@ -6,48 +7,54 @@ public class PickupComponent : SchematicBlock
     [Tooltip("The ItemType of this pickup.")]
     public ItemType ItemType;
     
-    [Header("Custom Item name/ID")]
+    [Tooltip("Custom Item name/ID.")]
     public string CustomItem;
-    
-    public AttachmentName[] Attachments;
 
-    [Header("Chance %")]
-    [Tooltip("The chance for this pickup to spawn.")]
+    [Tooltip("Use the in-game RA command \"forceatt\" while holding a firearm to get the code.\nSet to -1 for random attachments.")]
+    public string AttachmentsCode;
+
+    [Tooltip("The chance (in %) for this pickup to spawn.")]
     [Range(0f, 100f)]
     public float Chance = 100f;
 
-    [Tooltip("Number of times you can use the pickup it dissappears. Set to -1 for no limit.")]
+    [Tooltip("Number of times you can use the pickup before it dissappears.\nSet to -1 for no limit.")]
     [Min(-1)]
     public int NumberOfUses = 1;
-    
-    [Header("Can be picked up (untick for button)")]
-    [Tooltip("Whether the pickup can be picked up in game. If set to false this can be used as custom button via a serperate plugin.")]
-    public bool CanBePickedUp = true;
 
     public override BlockType BlockType => BlockType.Pickup;
 
-    public override bool Compile(SchematicBlockData block, Schematic _)
+    public override void Compile(SchematicBlockData block)
     {
-        block.BlockType = BlockType.Pickup;
         block.Properties = new Dictionary<string, object>
         {
             { "ItemType", ItemType },
             { "CustomItem", CustomItem },
-            { "Attachments", Attachments },
+            { "AttachmentsCode", AttachmentsCode },
             { "Chance", Chance },
             { "Uses", NumberOfUses },
         };
 
-        if (!CanBePickedUp)
-            block.Properties.Add("Locked", string.Empty);
-
-        return true;
+        base.Compile(block);
     }
+
+	public override void Decompile(ref GameObject gameObject, SchematicBlockData block, Transform parent)
+	{
+        PickupComponent pickupComponent = Create<PickupComponent>("Assets/Resources/Blocks/Pickup.prefab");
+        gameObject = pickupComponent.gameObject;
+
+        pickupComponent.ItemType = (ItemType)Convert.ToInt32(block.Properties["ItemType"]);
+        pickupComponent.CustomItem = block.Properties["CustomItem"].ToString();
+        pickupComponent.AttachmentsCode = block.Properties.TryGetValue("AttachmentsCode", out object attachmentsCode) ? attachmentsCode.ToString() : "-1";
+        pickupComponent.Chance = Convert.ToSingle(block.Properties["Chance"]);
+        pickupComponent.NumberOfUses = Convert.ToInt32(block.Properties["Uses"]);
+
+		base.Decompile(ref gameObject, block, parent);
+	}
 
     private void OnValidate()
     {
-        if (!CanBePickedUp)
-            NumberOfUses = -1;
+        if (!uint.TryParse(AttachmentsCode, out uint _))
+            AttachmentsCode = "-1";
     }
 }
 

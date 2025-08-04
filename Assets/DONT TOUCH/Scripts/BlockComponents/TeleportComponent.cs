@@ -9,7 +9,9 @@ public class TeleportComponent : SchematicBlock
 {
     public override BlockType BlockType => BlockType.Teleport;
 
-    public RoomType RoomType = RoomType.Surface;
+    public string Id;
+
+    // public RoomType RoomType = RoomType.Surface;
 
     /*
     [ReorderableList]
@@ -17,45 +19,47 @@ public class TeleportComponent : SchematicBlock
                                    "- Does not contain any duplicates\n" +
                                    "- One of the teleporters does not point to itself")]
                                    */
-    public TargetTeleporter[] TargetTeleporters = new[] { new TargetTeleporter { ChanceToTeleport = 100 } };
+    public TargetTeleport[] TargetTeleporters; // = new[] { new TargetTeleporter() /*{ ChanceToTeleport = 100 }*/ };
 
     // [BoxGroup("Teleport properties")] [ReorderableList]
-    public string[] AllowedRoleTypes = 
+    /*
+    public string[] AllowedRoleTypes =
     {
         "Scp173",
-		"ClassD",
-		"Spectator",
-		"Scp106",
-		"NtfSpecialist",
-		"Scp049",
-		"Scientist",
-		"Scp079",
-		"ChaosConscript",
-		"Scp096",
-		"Scp0492",
-		"NtfSergeant",
-		"NtfCaptain",
-		"NtfPrivate",
-		"Tutorial",
-		"FacilityGuard",
-		"Scp939",
-		"CustomRole",
-		"ChaosRifleman",
-		"ChaosMarauder",
-		"ChaosRepressor",
-		"Overwatch",
-		"Filmmaker",
-		"Scp3114"
+        "ClassD",
+        "Spectator",
+        "Scp106",
+        "NtfSpecialist",
+        "Scp049",
+        "Scientist",
+        "Scp079",
+        "ChaosConscript",
+        "Scp096",
+        "Scp0492",
+        "NtfSergeant",
+        "NtfCaptain",
+        "NtfPrivate",
+        "Tutorial",
+        "FacilityGuard",
+        "Scp939",
+        "CustomRole",
+        "ChaosRifleman",
+        "ChaosMarauder",
+        "ChaosRepressor",
+        "Overwatch",
+        "Filmmaker",
+        "Scp3114"
     };
+    */
 
     // [BoxGroup("Teleport properties")]
     public float Cooldown = 10f;
 
     // [BoxGroup("Teleport properties")]
-    public TeleportFlags TeleportFlags = TeleportFlags.Player;
+    // public TeleportFlags TeleportFlags = TeleportFlags.Player;
 
     // [BoxGroup("Teleport properties")]
-    public LockOnEvent LockOnEvent = LockOnEvent.None;
+    // public LockOnEvent LockOnEvent = LockOnEvent.None;
 
     // [BoxGroup("Player properties")]
     // [ShowIf("TeleportFlags", TeleportFlags.Player)]
@@ -70,11 +74,12 @@ public class TeleportComponent : SchematicBlock
              "- 30\n" +
              "- 31")]
     */
-    public bool PlaySoundOnTeleport = false;
+    // public bool PlaySoundOnTeleport = false;
 
     // [BoxGroup("Player properties")]
     // [ShowIf("PlaySoundOnTeleport")]
-    [Range(0, 31)]
+    // [Range(0, 31)]
+    /*
     [Tooltip("Plays the sound to the player on teleport.\n" +
              "Recommended values are:\n" +
              "- 2\n" +
@@ -84,25 +89,27 @@ public class TeleportComponent : SchematicBlock
              "- 27\n" +
              "- 30\n" +
              "- 31")]
-    public int SoundOnTeleport;
+             */
+    // public int SoundOnTeleport;
 
     // [BoxGroup("Player properties")]
     // [ShowIf("TeleportFlags", TeleportFlags.Player)]
-    public bool OverridePlayerXRotation = false;
+    // public bool OverridePlayerXRotation = false;
 
     // [BoxGroup("Player properties")] [ShowIf("OverridePlayerXRotation")]
-    [Range(-360f, 360f)]
-    public float PlayerRotationX;
+    // [Range(-360f, 360f)]
+    // public float PlayerRotationX;
 
     // [BoxGroup("Player properties")] [ShowIf("TeleportFlags", TeleportFlags.Player)]
-    public bool OverridePlayerYRotation = false;
+    // public bool OverridePlayerYRotation = false;
 
     // [BoxGroup("Player properties")] [ShowIf("OverridePlayerYRotation")]
-    [Range(-360f, 360f)]
-    public float PlayerRotationY;
+    // [Range(-360f, 360f)]
+    // public float PlayerRotationY;
 
-    public override bool Compile(SchematicBlockData block, Schematic schematic)
+    public override void Compile(SchematicBlockData block)
     {
+        /*
         if (!ValidateList(TargetTeleporters))
             throw new Exception($"The teleport list for the {name} is invalid! ({name})");
 
@@ -140,8 +147,7 @@ public class TeleportComponent : SchematicBlock
         serializableTeleport.TargetTeleporters = TargetTeleporters.ToList();
 
         schematic.Teleports.Add(serializableTeleport);
-
-        return false;
+        */
     }
 
 
@@ -158,18 +164,27 @@ public class TeleportComponent : SchematicBlock
     {
         _filter.hideFlags = HideFlags.HideInInspector;
         _renderer.hideFlags = HideFlags.HideInInspector;
+
+        if (string.IsNullOrEmpty(Id))
+            Id = Guid.NewGuid().ToString("N").Substring(0, 8);
+
+        foreach (TargetTeleport teleport in TargetTeleporters)
+        {
+            if (teleport.Teleport != null)
+                teleport.Id = teleport.Teleport.Id;    
+        }
     }
 
-    private bool ValidateList(TargetTeleporter[] array)
+    private bool ValidateList(TargetTeleport[] array)
     {
         List<TeleportComponent> checkList = new List<TeleportComponent>();
 
         for (int i = 0; i < array.Length; i++)
         {
-            if (array[i].Teleporter == null || array[i].Teleporter == this || checkList.Contains(array[i].Teleporter))
+            if (array[i].Teleport == null || array[i].Teleport == this || checkList.Contains(array[i].Teleport))
                 return false;
 
-            checkList.Add(array[i].Teleporter);
+            checkList.Add(array[i].Teleport);
         }
 
         return true;
@@ -177,15 +192,15 @@ public class TeleportComponent : SchematicBlock
 }
 
 [Serializable]
-public class TargetTeleporter
+public class TargetTeleport
 {
-    public int Id { get; set; }
+    public string Id;
 
-    public float Chance { get; set; }
+    // public float Chance { get; set; }
 
     [JsonIgnore] [Tooltip("Drag and drop target teleporter here.")]
-    public TeleportComponent Teleporter;
+    public TeleportComponent Teleport;
 
-    [JsonIgnore] [Tooltip("Set chance of teleporting to this teleporter.")]
-    public float ChanceToTeleport = 100f;
+    // [JsonIgnore] [Tooltip("Set chance of teleporting to this teleporter.")]
+    // public float ChanceToTeleport = 100f;
 }

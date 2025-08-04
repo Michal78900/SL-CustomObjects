@@ -95,11 +95,6 @@ public class SchematicManager : EditorWindow
             Config.ZipCompiledSchematics,
             UnityRichTextStyle);
 
-        Config.AutoAddComponents = EditorGUILayout.ToggleLeft(
-            "<color=white><i>Auto add components to created objects</i></color>",
-            Config.AutoAddComponents,
-            UnityRichTextStyle);
-
         EditorGUILayout.Space();
 
         EditorGUILayout.Space();

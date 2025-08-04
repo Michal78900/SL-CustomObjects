@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,10 +19,8 @@ public class PrimitiveComponent : SchematicBlock
 
     public override BlockType BlockType => BlockType.Primitive;
 
-    public override bool Compile(SchematicBlockData block, Schematic _)
+    public override void Compile(SchematicBlockData block)
     {
-        block.BlockType = BlockType.Primitive;
-
         PrimitiveFlags primitiveFlags = PrimitiveFlags.None;
         if (Collidable)
             primitiveFlags |= PrimitiveFlags.Collidable;
@@ -34,10 +33,36 @@ public class PrimitiveComponent : SchematicBlock
             { "PrimitiveType", (PrimitiveType)Enum.Parse(typeof(PrimitiveType), tag) },
             { "Color", ColorString },
             { "PrimitiveFlags", primitiveFlags },
-            { "Static", gameObject.isStatic }
         };
 
-        return true;
+        base.Compile(block);
+    }
+
+    public override void Decompile(ref GameObject gameObject, SchematicBlockData block, Transform parent)
+    {
+        PrimitiveType primitiveType = (PrimitiveType)Convert.ToInt32(block.Properties["PrimitiveType"]);
+        PrimitiveComponent primitiveComponent = Create<PrimitiveComponent>($"Assets/Resources/Blocks/Primitives/{primitiveType}.prefab");
+        gameObject = primitiveComponent.gameObject;
+
+        primitiveComponent.Color = GetColorFromString(block.Properties["Color"].ToString());
+
+        PrimitiveFlags primitiveFlags;
+        if (block.Properties.TryGetValue("PrimitiveFlags", out object flags))
+        {
+            primitiveFlags = (PrimitiveFlags)Convert.ToByte(flags);
+        }
+        else
+        {
+            // Backward compatibility
+            primitiveFlags = PrimitiveFlags.Visible;
+            if (block.Scale.x >= 0f)
+                primitiveFlags |= PrimitiveFlags.Collidable;
+        }
+
+        primitiveComponent.Collidable = primitiveFlags.HasFlag(PrimitiveFlags.Collidable);
+        primitiveComponent.Visible = primitiveFlags.HasFlag(PrimitiveFlags.Visible);
+
+        base.Decompile(ref gameObject, block, parent);
     }
 
     private string ColorString
@@ -49,6 +74,33 @@ public class PrimitiveComponent : SchematicBlock
 
             return string.Format("{0}:{1}:{2}:{3}", Color.r * 255f, Color.g * 255f, Color.b * 255f, Color.a).Replace(',', '.');
         }
+    }
+
+    public static Color GetColorFromString(string colorText)
+    {
+        Color color = new(-1f, -1f, -1f);
+        string[] charTab = colorText.Split(':');
+        if (charTab.Length >= 4)
+        {
+            if (float.TryParse(charTab[0], NumberStyles.Any, CultureInfo.InvariantCulture, out float red))
+                color.r = red / 255f;
+
+            if (float.TryParse(charTab[1], NumberStyles.Any, CultureInfo.InvariantCulture, out float green))
+                color.g = green / 255f;
+
+            if (float.TryParse(charTab[2], NumberStyles.Any, CultureInfo.InvariantCulture, out float blue))
+                color.b = blue / 255f;
+
+            if (float.TryParse(charTab[3], NumberStyles.Any, CultureInfo.InvariantCulture, out float alpha))
+                color.a = alpha;
+
+            return color != new Color(-1f, -1f, -1f) ? color : Color.magenta * 3f;
+        }
+
+        if (colorText[0] != '#' && colorText.Length == 8)
+            colorText = '#' + colorText;
+
+        return ColorUtility.TryParseHtmlString(colorText, out color) ? color : Color.magenta * 3f;
     }
 
     private void Start()

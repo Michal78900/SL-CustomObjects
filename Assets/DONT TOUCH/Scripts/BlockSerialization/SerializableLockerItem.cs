@@ -11,7 +11,7 @@ public class SerializableLockerItem
     {
         Item = !string.IsNullOrEmpty(lockerItem.CustomItem) ? lockerItem.CustomItem : lockerItem.ItemType.ToString();
         Count = lockerItem.Count;
-        Attachments = lockerItem.Attachments;
+        // Attachments = lockerItem.Attachments;
         Chance = lockerItem.Chance;
     }
     
@@ -19,7 +19,7 @@ public class SerializableLockerItem
     
     public uint Count { get; set; }
     
-    public List<AttachmentName> Attachments { get; set; }
+    // public List<AttachmentName> Attachments { get; set; }
 
     public float Chance { get; set; }
 }

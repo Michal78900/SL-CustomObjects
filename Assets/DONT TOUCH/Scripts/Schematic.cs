@@ -14,30 +14,9 @@ public class Schematic : SchematicBlock
 
     public void CompileSchematic()
     {
-        string parentDirectoryPath = Directory.Exists(Config.ExportPath)
-            ? Config.ExportPath
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "MapEditorReborn_CompiledSchematics");
-        
-        string schematicDirectoryPath = Path.Combine(parentDirectoryPath, name);
-
-        if (!Directory.Exists(parentDirectoryPath))
-            Directory.CreateDirectory(parentDirectoryPath);
-
-        if (Directory.Exists(schematicDirectoryPath))
-            DeleteDirectory(schematicDirectoryPath);
-
-        if (File.Exists($"{schematicDirectoryPath}.zip"))
-            File.Delete($"{schematicDirectoryPath}.zip");
-
-        Directory.CreateDirectory(schematicDirectoryPath);
+        SetupOutput(out string schematicDirectoryPath);
 
         int rootObjectId = transform.GetInstanceID();
-        /*
-        SchematicObjectDataList blockList = new SchematicObjectDataList(rootObjectId);
-        Dictionary<int, SerializableRigidbody> rigidbodyDictionary = new Dictionary<int, SerializableRigidbody>();
-        List<SerializableTeleport> teleports = new List<SerializableTeleport>();
-        */
         BlockList.RootObjectId = rootObjectId;
         BlockList.Blocks.Clear();
         RigidbodyDictionary.Clear();
@@ -46,62 +25,18 @@ public class Schematic : SchematicBlock
         if (TryGetComponent(out Rigidbody rigidbody))
             RigidbodyDictionary.Add(rootObjectId, new SerializableRigidbody(rigidbody));
 
-        // transform.localScale = Vector3.one;
-
-        foreach (Transform obj in GetComponentsInChildren<Transform>())
+        foreach (SchematicBlock block in GetComponentsInChildren<SchematicBlock>())
         {
-            if (obj.CompareTag("EditorOnly") || obj == transform)
+            if (block.CompareTag("EditorOnly") || block == this)
                 continue;
 
-            int objectId = obj.transform.GetInstanceID();
+            SchematicBlockData data = new();
+            block.Compile(data);
 
-            SchematicBlockData block = new SchematicBlockData
-            {
-                Name = obj.name,
-                ObjectId = objectId,
-                ParentId = obj.parent.GetInstanceID(),
-
-                Position = obj.localPosition,
-                Rotation = obj.localEulerAngles,
-                Scale = obj.localScale
-            };
-
-            if (obj.TryGetComponent(out SchematicBlock schematicBlock))
-            {
-                if (!schematicBlock.Compile(block, this))
-                    continue;
-            }
-            else
-            {
-                // Light
-                if (obj.TryGetComponent(out Light lightComponent))
-                {
-                    block.BlockType = BlockType.Light;
-                    block.Scale = null;
-                    block.Properties = new Dictionary<string, object>
-                    {
-                        { "LightType", lightComponent.type },
-                        { "Color", ColorUtility.ToHtmlStringRGBA(lightComponent.color) },
-                        { "Intensity", lightComponent.intensity },
-                        { "Range", lightComponent.range },
-                        { "Shape", lightComponent.shape },
-                        { "SpotAngle", lightComponent.spotAngle },
-                        { "InnerSpotAngle", lightComponent.innerSpotAngle },
-                        { "ShadowStrength", lightComponent.shadowStrength },
-                        { "ShadowType", lightComponent.shadows },
-                        { "Static", lightComponent.gameObject.isStatic }
-                    };
-                }
-                else // Empty transform
-                {
-                    block.BlockType = BlockType.Empty;
-                }
-            }
-
-            if (obj.TryGetComponent(out Animator animator) && animator.runtimeAnimatorController != null)
+            if (block.TryGetComponent(out Animator animator) && animator.runtimeAnimatorController != null)
             {
                 RuntimeAnimatorController runtimeAnimatorController = animator.runtimeAnimatorController;
-                block.AnimatorName = runtimeAnimatorController.name;
+                data.AnimatorName = runtimeAnimatorController.name;
 
                 BuildPipeline.BuildAssetBundle(runtimeAnimatorController,
                     runtimeAnimatorController.animationClips,
@@ -109,10 +44,10 @@ public class Schematic : SchematicBlock
                     AssetBundleBuildOptions, EditorUserBuildSettings.activeBuildTarget);
             }
 
-            if (obj.TryGetComponent(out rigidbody))
-                RigidbodyDictionary.Add(objectId, new SerializableRigidbody(rigidbody));
+            if (block.TryGetComponent(out rigidbody))
+                RigidbodyDictionary.Add(block.transform.GetInstanceID(), new SerializableRigidbody(rigidbody));
 
-            BlockList.Blocks.Add(block);
+            BlockList.Blocks.Add(data);
         }
 
         File.WriteAllText(Path.Combine(schematicDirectoryPath, $"{name}.json"),
@@ -155,8 +90,9 @@ public class Schematic : SchematicBlock
     }
 
     // This is only used in nested schematics (schematics inside other schematics)
-    public override bool Compile(SchematicBlockData block, Schematic _)
+    public override void Compile(SchematicBlockData block)
     {
+        return;
         block.Rotation = transform.localEulerAngles;
 
         block.BlockType = BlockType.Schematic;
@@ -165,7 +101,24 @@ public class Schematic : SchematicBlock
             { "SchematicName", name }
         };
 
-        return false;
+        // return false;
+    }
+
+    private void SetupOutput(out string schematicDirectoryPath)
+    {
+        string parentDirectoryPath = Directory.Exists(Config.ExportPath) ? Config.ExportPath : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "MapEditorReborn_CompiledSchematics");
+        schematicDirectoryPath = Path.Combine(parentDirectoryPath, name);
+
+        if (!Directory.Exists(parentDirectoryPath))
+            Directory.CreateDirectory(parentDirectoryPath);
+
+        if (Directory.Exists(schematicDirectoryPath))
+            DeleteDirectory(schematicDirectoryPath);
+
+        if (File.Exists($"{schematicDirectoryPath}.zip"))
+            File.Delete($"{schematicDirectoryPath}.zip");
+
+        Directory.CreateDirectory(schematicDirectoryPath);
     }
 
     private static void DeleteDirectory(string path)
