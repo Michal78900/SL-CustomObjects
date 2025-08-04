@@ -4,4 +4,5 @@ public enum DoorType
 	Hcz = 1,
 	Ez = 2,
 	HeavyBulk = 3,
+	Gate = 4,
 }

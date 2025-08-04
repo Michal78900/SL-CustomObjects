@@ -395,7 +395,7 @@ GameObject:
   - component: {fileID: 4382907420484891}
   - component: {fileID: -2949767732274059774}
   m_Layer: 0
-  m_Name: HCZ BreakableDoor
+  m_Name: Hcz
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

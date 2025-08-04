@@ -74,6 +74,19 @@ public class RightClickMenuExtended
 	[MenuItem("GameObject/🛠️ MER Blocks/Interactable", false, -1)]
 	private static void CreateInteractable(MenuCommand menuCommand) => CreateBlock(menuCommand, "Assets/Resources/Blocks/Interactable.prefab");
 
+	#region Doors
+	[MenuItem("GameObject/🛠️ MER Blocks/Doors/Ez", false, -1)]
+	private static void CreateEzDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, $"Assets/Resources/Blocks/Doors/Ez.prefab");
+	[MenuItem("GameObject/🛠️ MER Blocks/Doors/Lcz", false, -1)]
+	private static void CreateLczDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, $"Assets/Resources/Blocks/Doors/Lcz.prefab");
+	[MenuItem("GameObject/🛠️ MER Blocks/Doors/Hcz", false, -1)]
+	private static void CreateHczDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, $"Assets/Resources/Blocks/Doors/Hcz.prefab");
+	[MenuItem("GameObject/🛠️ MER Blocks/Doors/HeavyBulk", false, -1)]
+	private static void CreateHeavyBulkDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, $"Assets/Resources/Blocks/Doors/HeavyBulk.prefab");
+	[MenuItem("GameObject/🛠️ MER Blocks/Doors/Gate", false, -1)]
+	private static void CreateGateDoor(MenuCommand menuCommand) => CreateBlock(menuCommand, $"Assets/Resources/Blocks/Doors/Gate.prefab");
+	#endregion
+	
 	private static void CreateBlock(MenuCommand menuCommand, string prefabPath)
 	{
 		GameObject instance = SchematicBlock.Create<GameObject>(prefabPath);

@@ -42,7 +42,7 @@ GameObject:
   - component: {fileID: 4249421183650327}
   - component: {fileID: -3417009683496775220}
   m_Layer: 0
-  m_Name: HCZ BulkDoor
+  m_Name: HeavyBulk
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

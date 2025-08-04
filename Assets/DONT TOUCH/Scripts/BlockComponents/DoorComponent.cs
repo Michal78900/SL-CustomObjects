@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,10 +12,8 @@ public class DoorComponent : SchematicBlock
 	public DoorPermissionFlags RequiredPermissions = DoorPermissionFlags.None;
 	public bool RequireAll = true;
 
-	public override bool Compile(SchematicBlockData block, Schematic _)
+	public override void Compile(SchematicBlockData block)
 	{
-		block.BlockType = BlockType;
-		
 		block.Properties = new Dictionary<string, object>
 		{
 			{ "DoorType", DoorType },
@@ -24,6 +23,19 @@ public class DoorComponent : SchematicBlock
 			{ "RequireAll", RequireAll },
 		};
 		
-		return true;
+		base.Compile(block);
+	}
+
+	public override void Decompile(ref GameObject gameObject, SchematicBlockData block, Transform parent)
+	{
+		DoorType doorType = (DoorType)Convert.ToInt32(block.Properties["DoorType"]);
+		DoorComponent doorComponent = Create<DoorComponent>($"Assets/Resources/Blocks/Doors/{doorType}.prefab");
+		gameObject = doorComponent.gameObject;
+		
+		doorComponent.RequireAll = Convert.ToBoolean(block.Properties["RequireAll"]);
+		doorComponent.IsOpen = Convert.ToBoolean(block.Properties["IsOpen"]);
+		doorComponent.IsLocked = Convert.ToBoolean(block.Properties["IsLocked"]);
+		doorComponent.RequiredPermissions = (DoorPermissionFlags)Convert.ToUInt16(block.Properties["RequiredPermissions"]);
+		base.Decompile(ref gameObject, block, parent);
 	}
 }
