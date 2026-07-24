@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class WorkstationComponent : SchematicBlock
@@ -8,18 +9,24 @@ public class WorkstationComponent : SchematicBlock
 
     public override BlockType BlockType => BlockType.Workstation;
 
-    public override bool Compile(SchematicBlockData block, Schematic schematic)
+    public override void Compile(SchematicBlockData block)
     {
-        block.Rotation = transform.localEulerAngles;
-        block.Scale = transform.localScale;
-
-        block.BlockType = BlockType.Workstation;
         block.Properties = new Dictionary<string, object>
         {
             { "IsInteractable", IsInteractable },
         };
 
-        return true;
+        base.Compile(block);
     }
+
+	public override void Decompile(ref GameObject gameObject, SchematicBlockData block, Transform parent)
+	{
+        WorkstationComponent workstationComponent = Create<WorkstationComponent>("Assets/Resources/Blocks/Workstation.prefab");
+        gameObject = workstationComponent.gameObject;
+
+        workstationComponent.IsInteractable = block.Properties.TryGetValue("IsInteractable", out object isInteractable) && Convert.ToBoolean(isInteractable);
+
+		base.Decompile(ref gameObject, block, parent);
+	}
 }
 

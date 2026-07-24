@@ -15,7 +15,6 @@ public class Config
         OpenDirectoryAfterCompiling = source.OpenDirectoryAfterCompiling;
         ExportPath = source.ExportPath;
         ZipCompiledSchematics = source.ZipCompiledSchematics;
-        AutoAddComponents = source.AutoAddComponents;
 
         return this;
     }
@@ -26,13 +25,10 @@ public class Config
 
     public bool ZipCompiledSchematics { get; set; } = false;
 
-    public bool AutoAddComponents { get; set; } = true;
-
     public static bool operator ==(Config config, Config other) =>
         config.OpenDirectoryAfterCompiling == other.OpenDirectoryAfterCompiling &&
         config.ExportPath == other.ExportPath &&
-        config.ZipCompiledSchematics == other.ZipCompiledSchematics &&
-        config.AutoAddComponents == other.AutoAddComponents;
+        config.ZipCompiledSchematics == other.ZipCompiledSchematics;
 
     public static bool operator !=(Config config, Config other) => !(config == other);
 }

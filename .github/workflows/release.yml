@@ -1,0 +1,33 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create folder structure and export files
+        run: |
+          mkdir -p flamap/SL-CustomObjects
+          git archive --format=tar HEAD | tar -x -C flamap/SL-CustomObjects/
+
+      - name: Zip the directory
+        run: |
+          zip -r flamap.zip flamap
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: flamap.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

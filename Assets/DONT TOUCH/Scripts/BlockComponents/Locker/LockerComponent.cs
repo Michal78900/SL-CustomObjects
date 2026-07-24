@@ -49,12 +49,8 @@ public class LockerComponent : SchematicBlock
     
     public override BlockType BlockType => BlockType.Locker;
 
-    public override bool Compile(SchematicBlockData block, Schematic _)
+    public override void Compile(SchematicBlockData block)
     {
-        block.Rotation = transform.localEulerAngles;
-        block.Scale = transform.localScale;
-        block.BlockType = BlockType.Locker;
-
         Dictionary<int, List<SerializableLockerItem>> chambers = new Dictionary<int, List<SerializableLockerItem>>(Chambers.Length);
         int i = 0;
 
@@ -83,6 +79,7 @@ public class LockerComponent : SchematicBlock
             { "Chance", Chance },
         };
 
-        return true;
+        base.Compile(block);
+        // return true;
     }
 }

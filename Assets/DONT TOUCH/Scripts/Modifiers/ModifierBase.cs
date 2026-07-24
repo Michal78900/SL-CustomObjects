@@ -20,15 +20,15 @@
             if (!Apply)
                 return;
             
+            Apply = false;
+            GameObject copy = Instantiate(transform.root.gameObject);
+            copy.SetActive(false);
+
             ApplyModifier();
         }
 
         protected abstract void PreviewModifier();
 
-        virtual internal void ApplyModifier()
-        {
-            Apply = false;
-            DestroyImmediate(this);
-        }
+        internal virtual void ApplyModifier() => DestroyImmediate(this);
     }
 }
